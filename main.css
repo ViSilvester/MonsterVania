@@ -1,0 +1,15 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+
+body {
+    display: flex;
+}
+
+@font-face {
+    font-family: 'Press_Start_2p';
+    src: url("./assets/fonts/PressStart2P-vaV7.ttf");
+}
