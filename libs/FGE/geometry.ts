@@ -53,6 +53,12 @@ export class Rect {
 
         return true;
     }
+
+    copy() {
+
+        return new Rect(this.pos.copy(), this.dim.copy());
+
+    }
 }
 
 export class Edge {

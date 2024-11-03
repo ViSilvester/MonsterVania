@@ -1,52 +1,37 @@
-import { Engine } from "../../libs/FGE/engine.js";
 import { Entity } from "../../libs/FGE/entity.js";
-import { Vec2 } from "../../libs/FGE/geometry.js";
+import { Rect, Vec2 } from "../../libs/FGE/geometry.js";
 import { AnimationController } from "../controllers/animationController.js";
 import { Game } from "../game.js";
 import { Direction } from "./Player.js";
-import { Projectile } from "./Projectile.js";
 
 export class Enemy extends Entity {
     refpos: Vec2;
     dim: Vec2;
-    vel: Vec2;
     dir: Direction;
     offset: Vec2
     ani_control: AnimationController;
-    type: string;
     alive: boolean;
     attack_timer = 40;
+    vel = new Vec2(0, 0);
 
-    constructor(pos: Vec2, dim: Vec2, vel: Vec2, dir: Direction, offset: Vec2, sprites: ImageBitmap, sprite_dim: Vec2, type: string) {
+    constructor(pos: Vec2, dir: Direction, offset: Vec2, sprites: ImageBitmap) {
 
         super();
         this.pos = pos;
         this.refpos = new Vec2(pos.x, pos.y);
-        this.dim = dim;
-        this.vel = vel;
+        this.dim = new Vec2(1, 2);
         this.dir = dir;
         this.offset = offset;
-        this.ani_control = new AnimationController(sprites, sprite_dim);
-        this.type = type;
+        this.ani_control = new AnimationController(sprites, new Vec2(16, 32));
         this.alive = true;
-
+        this.vel.x = -0.1;
 
         this.ani_control.addAnim("ghost", 1, 0, 1);
-        this.ani_control.addAnim("zombie", 3, 0, 1);
-        this.ani_control.addAnim("morcego", 5, 0, 1);
+        this.ani_control.addAnim("zombie_right", 2, 0, 1);
+        this.ani_control.addAnim("zombie_left", 3, 0, 1);
+        this.ani_control.addAnim("hanged_zombie", 8, 0, 1);
+        this.ani_control.play("ghost");
 
-        switch (type) {
-            case "ghost":
-                this.ani_control.play("ghost");
-                break;
-            case "zombie":
-                this.ani_control.play("zombie");
-                vel.x *= 0.5;
-                break;
-            case "morcego":
-                this.ani_control.play("morcego");
-                break;
-        }
     }
 
     create(game: Game): void {
@@ -58,13 +43,10 @@ export class Enemy extends Entity {
 
         this.pos.x += this.vel.x;
         this.pos.y += this.vel.y;
-        this.anim_pattern();
 
-        if (this.pos.x > this.offset.x + 30 || this.pos.x < this.offset.x) {
+        if (this.pos.x > this.offset.x + 33 || this.pos.x < this.offset.x - 3) {
             this.alive = false;
         }
-
-        this.attack(game);
 
     }
 
@@ -72,38 +54,24 @@ export class Enemy extends Entity {
 
         const rpos = new Vec2((this.pos.x - this.offset.x) * game.tileSize, (this.pos.y - this.offset.y) * game.tileSize);
         const rdim = new Vec2(this.dim.x * game.tileSize, this.dim.y * game.tileSize);
-
         this.ani_control.render(game, rpos, rdim);
 
+        // var r = this.getColisionBox();
+        // r.pos.x -= this.offset.x;
+        // r.pos.x *= game.tileSize;
+        // r.dim.x *= game.tileSize;
+        // r.pos.y -= this.offset.y;
+        // r.pos.y *= game.tileSize;
+        // r.dim.y *= game.tileSize;
+
+        // game.draw.fillRect(r, 255, 0, 0);
+
+    }
+
+    getColisionBox() {
+        return new Rect(new Vec2(this.pos.x, this.pos.y), new Vec2(this.dim.x, this.dim.y));
     }
 
 
-    anim_pattern() {
 
-        if (this.type == 'morcego') {
-            this.pos.y = this.refpos.y + Math.cos(this.pos.x / 2)
-        }
-
-    }
-
-    attack(game: Game) {
-
-        this.attack_timer += 1;
-
-        if (this.attack_timer > 100) {
-
-            this.attack_timer = 0;
-
-            switch (this.type) {
-
-                case "morcego":
-
-                    game.p_projectiles.push(new Projectile(new Vec2(this.pos.x, this.pos.y), new Vec2(-0.15, 0.15), "E1", this.offset, 0));
-                    game.p_projectiles.push(new Projectile(new Vec2(this.pos.x, this.pos.y), new Vec2(-0.21, 0), "E1", this.offset, 0));
-                    game.p_projectiles.push(new Projectile(new Vec2(this.pos.x, this.pos.y), new Vec2(-0.15, -0.15), "E1", this.offset, 0));
-
-                    break;
-            }
-        }
-    }
 }

@@ -18,6 +18,14 @@ export class Player extends Entity {
     onground = true;
     p_img: ImageBitmap;
     selected_weapon = "faca";
+    colisionBox: Rect;
+    anim_timer = 400;
+
+    score = 0;
+    vida = 20;
+
+    damagecolldowntimer = 0;
+
 
 
     constructor(sprite: ImageBitmap, p_img: ImageBitmap, offset: Vec2) {
@@ -31,6 +39,7 @@ export class Player extends Entity {
         this.status = PlayerStatus.idle;
         this.p_img = p_img;
         this.ani_control = new AnimationController(sprite, new Vec2(16, 32));
+        this.colisionBox = new Rect(new Vec2(0.2, 0), new Vec2(0.6, 2))
 
         this.ani_control.addAnim("idle_right", 0, 0, 1);
         this.ani_control.addAnim("idle_left", 1, 0, 1);
@@ -53,6 +62,21 @@ export class Player extends Entity {
     update(game: Game): void {
 
         this.ani_control.update();
+
+        if (this.status == PlayerStatus.dead) {
+
+            game.soundController.pause("level_song");
+
+            if (this.anim_timer == 300) {
+                this.damagecolldowntimer = 0;
+            }
+            else if (this.anim_timer == 1) {
+                game.restartGame();
+            }
+            this.anim_timer -= 1;
+
+            return;
+        }
 
         if (KeybordController.getKeyState('S') && this.status != PlayerStatus.jumping) {
             this.vel.x = 0;
@@ -90,7 +114,7 @@ export class Player extends Entity {
             }
         }
 
-        if (KeybordController.getKeyPress('K') && this.status != PlayerStatus.crouch) {
+        if (KeybordController.getKeyPress('K') && this.status != PlayerStatus.crouch && this.onground) {
             this.vel.y = -0.275;
             this.status = PlayerStatus.jumping;
         }
@@ -99,7 +123,7 @@ export class Player extends Entity {
             this.attack(game);
         }
 
-        if (KeybordController.getKeyPress("Control")) {
+        if (KeybordController.getKeyPress("shift")) {
             if (this.selected_weapon == "faca") {
                 this.selected_weapon = "machado";
             }
@@ -109,6 +133,14 @@ export class Player extends Entity {
             else if (this.selected_weapon == "granada") {
                 this.selected_weapon = "faca";
             }
+        }
+
+
+        if (this.status == PlayerStatus.crouch) {
+            this.colisionBox = new Rect(new Vec2(0.2, 1), new Vec2(0.6, 1));
+        }
+        else {
+            this.colisionBox = new Rect(new Vec2(0.2, 0), new Vec2(0.6, 2));
         }
 
         this.vel.y += 0.017;
@@ -138,62 +170,67 @@ export class Player extends Entity {
 
         this.solveMapColision(game, oldPos);
 
+        if (KeybordController.getKeyPress("Y")) {
+
+            //this.pos.x = 483;
+            //this.pos.x = 324;
+            this.pos.x = 245;
+        }
+
+        this.calcDamage(game);
+
+        if (this.damagecolldowntimer > 0) {
+            this.damagecolldowntimer -= 1;
+        }
+
     }
 
     render(game: Game): void {
 
-        const rpos = new Vec2((this.pos.x - this.offset.x) * game.tileSize, (this.pos.y - this.offset.y) * game.tileSize);
-        const rdim = new Vec2(this.dim.x * game.tileSize, this.dim.y * game.tileSize);
+        if (this.damagecolldowntimer == 0 || (this.damagecolldowntimer > 0 && (this.damagecolldowntimer % 10) > 5)) {
 
-        this.ani_control.render(game, rpos, rdim);
+            const rpos = new Vec2((this.pos.x - this.offset.x) * game.tileSize, (this.pos.y - this.offset.y) * game.tileSize);
+            const rdim = new Vec2(this.dim.x * game.tileSize, this.dim.y * game.tileSize);
+
+            this.ani_control.render(game, rpos, rdim);
+
+        }
 
     }
 
     attack(game: Game) {
 
-        var spawn_point = new Vec2(this.dir == Direction.left ? this.pos.x : this.pos.x + 0.8, this.status == PlayerStatus.crouch ? this.pos.y + 0.6 : this.pos.y);
+
+
+        var spawn_point = new Vec2(this.dir == Direction.left ? this.pos.x - 0.2 : this.pos.x + 0.2, this.status == PlayerStatus.crouch ? this.pos.y + 0.7 : this.pos.y);
         var vel = new Vec2(this.dir == Direction.left ? -0.5 : 0.5, 0);
+
 
         var g = 0;
         var n = "1";
         if (this.selected_weapon == "machado") {
             g = 0.02;
-            vel = new Vec2(this.dir == Direction.left ? -0.25 : 0.25, -0.35);
+            vel = new Vec2((this.dir == Direction.left ? -0.25 : 0.25), -0.4);
             n = "2";
+            game.soundController.play("attack_machado");
+
         }
         else if (this.selected_weapon == "granada") {
             g = 0.01;
-            vel = new Vec2(this.dir == Direction.left ? -0.4 : 0.4, -0.075);
+            vel = new Vec2((this.dir == Direction.left ? -0.2 : 0.2), -0.08);
             n = "3";
+            game.soundController.play("attack");
+
+        }
+        else {
+            game.soundController.play("attack");
+
         }
 
         game.p_projectiles.push(new Projectile(spawn_point, vel, "P" + n, this.offset, g, this.p_img, this.selected_weapon + (this.dir == Direction.left ? "_left" : "_right")));
 
     }
 
-    updateWalking(game: Game) {
-
-
-    }
-
-    updateIdle(game: Game) {
-
-
-    }
-
-    updateAttacking(game: Game) {
-
-
-    }
-
-    AttackAnimation() {
-
-    }
-
-    updateAttackBox() {
-
-
-    }
 
     solveMapColision(game: Game, oldPos: Vec2) {
 
@@ -249,6 +286,77 @@ export class Player extends Entity {
 
         this.pos = newPos;
     }
+
+
+    calcDamage(game: Game) {
+
+        for (var i = 0; i < game.enemies.length; i++) {
+
+            if (this.damagecolldowntimer == 0) {
+
+                var e = game.enemies[i];
+
+                var r = this.colisionBox.copy();
+                r.pos.x = (this.pos.x + r.pos.x);
+                r.pos.y = (this.pos.y + r.pos.y);
+                r.dim.x = r.dim.x;
+                r.dim.y = r.dim.y;
+
+                if (r.checkIntersect(e.getColisionBox())) {
+
+                    //e.alive = false;
+                    this.vida -= 3;
+                    this.damagecolldowntimer = 100;
+                    game.soundController.play("hit");
+
+                    if (this.vida <= 0) {
+                        this.vida = 0;
+                        this.status = PlayerStatus.dead;
+
+                        setTimeout(() => { game.soundController.play("you_dead"); }, 2000)
+
+                    }
+                }
+
+            }
+        }
+
+
+        for (var i = 0; i < game.p_projectiles.length; i++) {
+
+            if (this.damagecolldowntimer == 0) {
+
+                var p = game.p_projectiles[i];
+
+                if (p.type.charAt(0) == 'E') {
+
+                    var r = this.colisionBox.copy();
+                    r.pos.x = (this.pos.x + r.pos.x);
+                    r.pos.y = (this.pos.y + r.pos.y);
+                    r.dim.x = r.dim.x;
+                    r.dim.y = r.dim.y;
+
+                    if (r.checkIntersect(p.getColisionBox())) {
+
+                        p.alive = false;
+                        this.vida -= Number(p.type.charAt(1));
+                        this.damagecolldowntimer = 100;
+                        game.soundController.play("hit");
+
+                        if (this.vida <= 0) {
+                            this.vida = 0;
+                            this.status = PlayerStatus.dead;
+                            setTimeout(() => { game.soundController.play("you_dead"); }, 2000)
+                        }
+                    }
+                }
+            }
+        }
+
+        if (this.pos.y > 20) {
+            this.status = PlayerStatus.dead;
+        }
+    }
 }
 
 export enum PlayerStatus {
@@ -258,6 +366,7 @@ export enum PlayerStatus {
     jumping,
     attacking,
     crouch,
+    dead,
 }
 
 
@@ -274,5 +383,5 @@ export class PlayerStats {
 }
 
 export enum Direction {
-    up, down, left, right
+    up = "up", down = "down", left = "left", right = "right"
 }   

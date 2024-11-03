@@ -135,8 +135,6 @@ export class AnimationController {
                 return;
             }
 
-            this.timer += 1;
-
             if (this.timer >= this.current_tick_rate) {
                 this.current_frame += 1;
                 this.timer = 0;
@@ -150,8 +148,7 @@ export class AnimationController {
                         break;
                     case "pause":
                         this.stop();
-                        this.current_frame -= 1;
-                        this.pause();
+                        this.current_frame = this.current_anim.duration - 1;
                         break;
                     case "stop":
                         this.stop();
@@ -161,6 +158,8 @@ export class AnimationController {
                         break;
                 }
             }
+
+            this.timer += 1;
         }
     };
 

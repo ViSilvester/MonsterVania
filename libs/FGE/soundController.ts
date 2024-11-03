@@ -29,6 +29,9 @@ export class SoundController {
 
         if (audio) {
 
+            audio.pause();
+            audio.currentTime = 0;
+
             try {
                 await audio.play();
             }

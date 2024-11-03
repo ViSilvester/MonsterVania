@@ -37,6 +37,7 @@ export class Projectile extends Entity {
             this.anicom.addAnim("granada_right", 4, 0, 4, 5);
             this.anicom.addAnim("granada_left", 4, 0, 4, 5);
             this.anicom.addAnim("explosao", 5, 0, 5, 4, undefined, "pause");
+            this.anicom.addAnim("fogo", 6, 0, 2, 5);
 
             if (animation) {
                 this.anicom.play(animation);
@@ -49,10 +50,38 @@ export class Projectile extends Entity {
 
     }
 
+
+    getColisionBox() {
+
+        if (this.type.charAt(0) == 'E') {
+            return new Rect(new Vec2(this.pos.x + 0.25, this.pos.y + 0.25), new Vec2(0.5, 0.5));
+        }
+
+        if (this.type == 'P1') {
+            return new Rect(new Vec2(this.pos.x + 0.1, this.pos.y + 0.35), new Vec2(0.8, 0.3));
+        }
+
+        if (this.type == 'P2') {
+            return new Rect(new Vec2(this.pos.x + 0, this.pos.y + 0), new Vec2(1, 1));
+        }
+
+        if (this.type == 'P3') {
+            return new Rect(new Vec2(this.pos.x + 0.25, this.pos.y + 0.25), new Vec2(0.5, 0.5));
+        }
+
+        if (this.type == 'P4') {
+            return new Rect(new Vec2(this.pos.x + 0, this.pos.y + 0), new Vec2(1, 1));
+        }
+
+
+        return new Rect(new Vec2(this.pos.x + 0.5, this.pos.y + 0.5), new Vec2(0.5, 0.5));
+    }
+
     create(game: Game): void {
 
 
     }
+
     update(game: Game): void {
 
         if (!this.alive) {
@@ -67,20 +96,35 @@ export class Projectile extends Entity {
 
             for (var i = 0; i < game.enemies.length; i++) {
                 var p = game.enemies[i];
-                var rect = new Rect(p.pos, p.dim);
-                if (rect.checkIntersect(new Rect(this.pos, this.dim))) {
+                var rect = p.getColisionBox();
 
-                    if (this.type != "P4") {
+                if (rect.checkIntersect(this.getColisionBox())) {
+
+                    if (this.type == "P1") {
                         this.alive = false;
+                        p.alive = false
+                        game.soundController.play("hit");
                     }
-                    p.alive = false;
+
+                    if (this.type == "P2") {
+                        this.alive = false;
+                        p.alive = false;
+                        game.soundController.play("hit");
+                    }
 
                     if (this.type == "P3") {
                         this.explodir(game, new Vec2(p.pos.x + 0.5, p.pos.y));
+                        this.alive = false;
+                        game.soundController.play("hit");
                     }
-                    if (this.type != "P3" && this.type != "P4") {
-                        game.addBlood(this.pos.copy());
+
+                    if (this.type == "P4") {
+                        p.alive = false
                     }
+                    game.player.score += 100;
+
+                    game.addBlood(this.pos.copy());
+
 
                 }
             }
@@ -130,16 +174,24 @@ export class Projectile extends Entity {
         if (this.anicom) {
             this.anicom.render(game, rpos, rdim);
         }
-        else {
-            game.draw.fillRect(new Rect(rpos, rdim), 255, 0, 0);
-        }
 
+        // var r = this.getColisionBox();
+        // r.pos.x -= this.offset.x;
+        // r.pos.x *= game.tileSize;
+        // r.dim.x *= game.tileSize;
+        // r.pos.y -= this.offset.y;
+        // r.pos.y *= game.tileSize;
+        // r.dim.y *= game.tileSize;
+
+        // game.draw.fillRect(r, 255, 0, 0);
 
 
     }
 
 
     explodir(game: Game, position: Vec2) {
+
+        game.soundController.play("explode");
 
 
         for (var i = Math.floor(position.x) - 1; i < Math.floor(position.x) + 2; i++) {
