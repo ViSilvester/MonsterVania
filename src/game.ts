@@ -98,35 +98,40 @@ export class Game extends Engine {
 
     async create(): Promise<void> {
 
+        //loading screen
+
+        this.draw.fillBackgroudColor(0, 0, 0);
+
+        this.draw.fillText("LOADING...", new Vec2(0, 800 - this.tileSize), 255, 255, 255, this.tileSize + "px Consolas")
 
         //images
 
-        var tileset = await EzIO.loadImageFromUrl("../assets/images/tileset.png");
-        var player_sprite = await EzIO.loadImageFromUrl("../assets/images/player.png")
-        this.enemy_sprite = await EzIO.loadImageFromUrl("../assets/images/Enemies.png");
-        this.background = await EzIO.loadImageFromUrl("../assets/images/background.png");
-        this.midlayer = await EzIO.loadImageFromUrl("../assets/images/mid_layer.png");
-        var blood = await EzIO.loadImageFromUrl("../assets/images/blood.png");
-        var projectiles = await EzIO.loadImageFromUrl("../assets/images/armas.png");
-        var boss = await EzIO.loadImageFromUrl("../assets/images/boss_2.png");
+        var tileset = await EzIO.loadImageFromUrl("./assets/images/tileset.png");
+        var player_sprite = await EzIO.loadImageFromUrl("./assets/images/player.png")
+        this.enemy_sprite = await EzIO.loadImageFromUrl("./assets/images/Enemies.png");
+        this.background = await EzIO.loadImageFromUrl("./assets/images/background.png");
+        this.midlayer = await EzIO.loadImageFromUrl("./assets/images/mid_layer.png");
+        var blood = await EzIO.loadImageFromUrl("./assets/images/blood.png");
+        var projectiles = await EzIO.loadImageFromUrl("./assets/images/armas.png");
+        var boss = await EzIO.loadImageFromUrl("./assets/images/boss_2.png");
 
         //sound
 
-        this.soundController.addSound("risada", "../assets/sounds/risada.ogg");
-        this.soundController.addSound("boss_defeated", "../assets/sounds/boss_defeated.ogg");
-        this.soundController.addSound("level_song", "../assets/sounds/level_song.ogg", true);
-        this.soundController.addSound("hit", "../assets/sounds/hit.ogg");
-        this.soundController.addSound("explode", "../assets/sounds/explode.ogg");
-        this.soundController.addSound("attack", "../assets/sounds/attack.ogg");
-        this.soundController.addSound("attack_machado", "../assets/sounds/attack_machado.ogg");
-        this.soundController.addSound("you_dead", "../assets/sounds/you_dead.ogg");
-        this.soundController.addSound("victory", "../assets/sounds/victory.ogg");
+        this.soundController.addSound("risada", "./assets/sounds/risada.ogg");
+        this.soundController.addSound("boss_defeated", "./assets/sounds/boss_defeated.ogg");
+        this.soundController.addSound("level_song", "./assets/sounds/level_song.ogg", true);
+        this.soundController.addSound("hit", "./assets/sounds/hit.ogg");
+        this.soundController.addSound("explode", "./assets/sounds/explode.ogg");
+        this.soundController.addSound("attack", "./assets/sounds/attack.ogg");
+        this.soundController.addSound("attack_machado", "./assets/sounds/attack_machado.ogg");
+        this.soundController.addSound("you_dead", "./assets/sounds/you_dead.ogg");
+        this.soundController.addSound("victory", "./assets/sounds/victory.ogg");
 
         this.soundController.play("level_song");
 
         // Build Map
 
-        var map_data = await EzIO.loadJsonFromUrl("../data/mapa.json");
+        var map_data = await EzIO.loadJsonFromUrl("./data/mapa.json");
         var tiles = map_data.layers[0].data;
         this.map_width = map_data.width;
         var tileData: Array<TileData> = [];
