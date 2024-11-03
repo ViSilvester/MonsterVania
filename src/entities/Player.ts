@@ -174,7 +174,7 @@ export class Player extends Entity {
 
             //this.pos.x = 483;
             //this.pos.x = 324;
-            this.pos.x = 245;
+            //this.pos.x = 245;
         }
 
         this.calcDamage(game);
