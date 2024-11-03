@@ -355,6 +355,7 @@ export class Player extends Entity {
 
         if (this.pos.y > 20) {
             this.status = PlayerStatus.dead;
+            setTimeout(() => { game.soundController.play("you_dead"); }, 2000)
         }
     }
 }
